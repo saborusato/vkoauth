@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"vkoauth/display"
+
+	"github.com/ciricc/vkoauth/display"
 )
 
 type AuthParams struct {

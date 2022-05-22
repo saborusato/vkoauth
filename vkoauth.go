@@ -9,7 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"vkoauth/scope"
+
+	"github.com/ciricc/vkoauth/scope"
 )
 
 var DefaultVersion = "5.131" // Версия API ВКонтакте по умолчанию

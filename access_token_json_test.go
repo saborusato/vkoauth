@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
-	"vkoauth"
+
+	"github.com/ciricc/vkoauth"
 )
 
 type TokenCase struct {

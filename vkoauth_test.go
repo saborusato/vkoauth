@@ -8,9 +8,10 @@ import (
 	"net/url"
 	"reflect"
 	"testing"
-	"vkoauth"
-	"vkoauth/display"
-	"vkoauth/scope"
+
+	"github.com/ciricc/vkoauth"
+	"github.com/ciricc/vkoauth/display"
+	"github.com/ciricc/vkoauth/scope"
 )
 
 var LocalEndpoint = vkoauth.Endpoint{

@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 	"testing"
-	"vkoauth"
+
+	"github.com/ciricc/vkoauth"
 )
 
 func TestContextClient(t *testing.T) {
