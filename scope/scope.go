@@ -1,6 +1,6 @@
 package scope
 
-type Scope int
+type Scope uint
 type ContextKey struct{}
 
 // Права доступа для пользователя, используйте побитовое ИЛИ, чтобы сложить права вместе
@@ -34,7 +34,7 @@ var User = struct {
 	Stats:         1 << 20,
 	Email:         1 << 22,
 	Market:        1 << 27,
-	All:           Scope(AllMask(27)),
+	All:           Scope(FullFlag(27)),
 }
 
 // Права доступа для сообществ, используйте побитовое ИЛИ, чтобы сложить права вместе
@@ -54,12 +54,12 @@ var Group = struct {
 	Messages:  1 << 12,
 	Docs:      1 << 17,
 	Manage:    1 << 18,
-	All:       Scope(AllMask(18)),
+	All:       Scope(FullFlag(18)),
 }
 
 // Возвращает число, (maxVal + 1) первых битов которого = 1
-func AllMask(maxVal int) int {
-	v := 1
+func FullFlag(maxVal uint) uint {
+	v := uint(1)
 	for i := 0; i < int(maxVal); i++ {
 		v = (v << 1) | 1
 	}

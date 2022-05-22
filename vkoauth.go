@@ -3,6 +3,7 @@ package vkoauth
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/url"
 	"strconv"
@@ -65,7 +66,7 @@ func (v *Config) buildAuthUrl(params AuthParams, responseType string, opts ...Au
 		u.Set("display", string(params.Display))
 	}
 
-	u.Set("v", v.Version)
+	u.Set("v", v.version())
 
 	if v.Scope != 0 {
 		u.Set("scope", strconv.FormatInt(int64(v.Scope), 10))
@@ -110,10 +111,21 @@ func (v *Config) buildAuthUrl(params AuthParams, responseType string, opts ...Au
 }
 
 // Делает запрос на получение токена по указанному URL
-func (v *Config) doTokenRequest(ctx context.Context, url string) (*Token, error) {
+func (v *Config) doTokenRequest(ctx context.Context, reqUrl string) (*Token, error) {
 	client := ContextClient(ctx)
+	if client == nil {
+		return nil, fmt.Errorf("http client is nil")
+	}
 
-	res, err := client.Get(url)
+	url, err := url.Parse(reqUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	rawQ := url.RawQuery
+	url.RawQuery = ""
+
+	res, err := client.Post(url.String(), "application/x-www-form-urlencoded; charset=utf-8", strings.NewReader(rawQ))
 	if err != nil {
 		return nil, err
 	}

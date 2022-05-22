@@ -9,8 +9,8 @@ func (v *Config) GetServiceToken(ctx context.Context, opts ...AuthOption) (*Toke
 	credentialsOptions := []AuthOption{
 		setParam{"grant_type", "client_credentials"},
 	}
-	credentialsOptions = append(credentialsOptions, opts...)
 
+	credentialsOptions = append(credentialsOptions, opts...)
 	return v.doTokenRequest(ctx, v.buildTokenUrl(v.endpoint().TokenUrl,
 		credentialsOptions...,
 	))
