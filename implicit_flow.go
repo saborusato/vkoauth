@@ -24,18 +24,18 @@ func (v *Config) ImplicitFlowAuthUrl(params AuthParams, opts ...AuthOption) stri
 // Возвращает токен, полученный после прохождения авторизации методом Implicit Flow
 // Принимает параметр query - декодированное значение REDIRECT_URI#{fragment}
 // Используйте библиотеку url, чтобы получать фрагмент из URL быстрее
-func (v *Config) ResultToken(query url.Values) (*Token, error) {
-	err := v.getErrorFromQuery(query)
+func (v *Config) ResultToken(fragmentQuery url.Values) (*Token, error) {
+	err := v.getErrorFromQuery(fragmentQuery)
 	if err != nil {
 		return nil, err
 	}
 
 	token := Token{}
-	for k := range query {
+	for k := range fragmentQuery {
 		if strings.HasPrefix(k, "access_token") {
 			if k == "access_token" {
 				// User token
-				token.AccessToken = query.Get(k)
+				token.AccessToken = fragmentQuery.Get(k)
 			} else {
 				groupIdString := strings.Replace(k, "access_token_", "", 1)
 				groupId, err := strconv.ParseInt(groupIdString, 10, 64)
@@ -46,13 +46,13 @@ func (v *Config) ResultToken(query url.Values) (*Token, error) {
 
 				token.Groups = append(token.Groups, &GroupToken{
 					GroupId:     groupId,
-					AccessToken: query.Get(k),
+					AccessToken: fragmentQuery.Get(k),
 				})
 			}
 		}
 	}
 
-	expiresInVal := query.Get("expires_in")
+	expiresInVal := fragmentQuery.Get("expires_in")
 	if expiresInVal != "" {
 		expiresIn, err := strconv.ParseInt(expiresInVal, 10, 64)
 		if err != nil {
@@ -64,7 +64,7 @@ func (v *Config) ResultToken(query url.Values) (*Token, error) {
 		}
 	}
 
-	userIdVal := query.Get("user_id")
+	userIdVal := fragmentQuery.Get("user_id")
 	if userIdVal != "" {
 		userId, err := strconv.ParseInt(userIdVal, 10, 64)
 		if err != nil {
@@ -73,11 +73,11 @@ func (v *Config) ResultToken(query url.Values) (*Token, error) {
 		token.UserId = userId
 	}
 
-	token.State = query.Get("state")
+	token.State = fragmentQuery.Get("state")
 
-	raw := make(map[string]interface{}, len(query))
-	for k := range query {
-		raw[k] = query.Get(k)
+	raw := make(map[string]interface{}, len(fragmentQuery))
+	for k := range fragmentQuery {
+		raw[k] = fragmentQuery.Get(k)
 	}
 
 	token.Raw = raw
