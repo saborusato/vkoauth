@@ -521,3 +521,144 @@ func TestRewriteExchangeCodeRequestValues(t *testing.T) {
 
 	c.ExchangeCode(context.Background(), "", vkoauth.SetUrlParam("foo", "bar"), vkoauth.SetUrlParam("client_secret", "new_client_secret"))
 }
+
+func TestResultCodeError(t *testing.T) {
+	c := conf("")
+	redirectedInUrl, err := url.Parse("http://REDIRECT_URI?error=access_denied&error_description=The+user+or+authorization+server+denied+the+request.")
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = c.ResultCode(redirectedInUrl.Query())
+
+	if err == nil {
+		t.Errorf("not found error")
+	} else {
+		if errObj, ok := err.(*vkoauth.TokenError); ok {
+			if errObj.ErrorCode != "access_denied" {
+				t.Errorf("unepected error code: %q", errObj.ErrorCode)
+			}
+		} else {
+			t.Errorf("unexpected error type: %v", err)
+		}
+	}
+}
+
+func TestResultCodeOk(t *testing.T) {
+	c := conf("")
+
+	redirectedInUrl, err := url.Parse("http://REDIRECT_URI?code=abc")
+	if err != nil {
+		t.Error(err)
+	}
+
+	code, err := c.ResultCode(redirectedInUrl.Query())
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if code != "abc" {
+		t.Errorf("unexpected code: %q", code)
+	}
+}
+
+func TestResultTokenError(t *testing.T) {
+	c := conf("")
+
+	redirectedInUrl, err := url.Parse("http://REDIRECT_URI#error=access_denied&error_description=The+user+or+authorization+server+denied+the+request.")
+	if err != nil {
+		t.Error(err)
+	}
+
+	values, err := url.ParseQuery(redirectedInUrl.Fragment)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = c.ResultToken(values)
+	if err == nil {
+		t.Errorf("not found error")
+	} else {
+		if errObj, ok := err.(*vkoauth.TokenError); ok {
+			if errObj.ErrorCode != "access_denied" {
+				t.Errorf("unepected error code: %q", errObj.ErrorCode)
+			}
+		} else {
+			t.Errorf("unexpected error type: %v", err)
+		}
+	}
+}
+
+func TestResultTokenOk(t *testing.T) {
+	c := conf("")
+
+	redirectedInUrl, err := url.Parse("http://REDIRECT_URI#access_token=533bacf01e11f55b536a565b57531ad114461ae8736d6506a3&expires_in=86400&user_id=8492&state=123456")
+	if err != nil {
+		t.Error(err)
+	}
+
+	values, err := url.ParseQuery(redirectedInUrl.Fragment)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	token, err := c.ResultToken(values)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if token.AccessToken != "533bacf01e11f55b536a565b57531ad114461ae8736d6506a3" {
+		t.Errorf("unexpected access token: %q", token.AccessToken)
+	}
+
+	if token.Expires == nil {
+		t.Errorf("unexpected expires val: %v", token.Expires)
+	}
+
+	if token.UserId != 8492 {
+		t.Errorf("unexpected user id: %d", token.UserId)
+	}
+
+	if token.State != "123456" {
+		t.Errorf("unexpected state: %q", token.State)
+	}
+}
+
+func TestResultTOkenGroupsOk(t *testing.T) {
+	c := conf("")
+
+	redirectedInUrl, err := url.Parse("http://REDIRECT_URI#access_token_12345=533bacf01e11f55b536a565b57531ad114461ae8736d6506a3&expires_in=86400")
+	if err != nil {
+		t.Error(err)
+	}
+
+	values, err := url.ParseQuery(redirectedInUrl.Fragment)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	token, err := c.ResultToken(values)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if token.Expires == nil {
+		t.Errorf("unexpected expires val: %v", token.Expires)
+	}
+
+	if len(token.Groups) != 1 {
+		t.Errorf("unexpected groups length: %d", len(token.Groups))
+	}
+
+	if token.Groups[0].GroupId != 12345 {
+		t.Errorf("unexpected group id: %d", token.Groups[0].GroupId)
+	}
+
+	if token.Groups[0].AccessToken != "533bacf01e11f55b536a565b57531ad114461ae8736d6506a3" {
+		t.Errorf("unexpected group access token: %q", token.Groups[0].AccessToken)
+	}
+}

@@ -2,6 +2,8 @@ package vkoauth
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 )
 
 // Создает URL, на который нужно направить пользователя для проведения авторизации методом Authorization Code Flow
@@ -24,4 +26,19 @@ func (v *Config) ExchangeCode(ctx context.Context, code string, opts ...AuthOpti
 	return v.doTokenRequest(ctx, v.buildTokenUrl(v.endpoint().TokenUrl,
 		exchangeOptions...,
 	))
+}
+
+// Возвращает код, полученный сервером после редиректа пользователя
+// В случае, если возникла ошибка - вернет ошибку
+func (v *Config) ResultCode(query url.Values) (string, error) {
+	err := v.getErrorFromQuery(query)
+	if err != nil {
+		return "", err
+	}
+
+	if query.Get("code") != "" {
+		return query.Get("code"), nil
+	}
+
+	return "", fmt.Errorf("code not found")
 }

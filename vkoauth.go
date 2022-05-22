@@ -47,6 +47,7 @@ type Token struct {
 	AccessToken string                 // Токен пользователя или приложения
 	UserId      int64                  // Идентификатор пользователя (0, если получен токен приложения или сообщества)
 	Expires     *time.Time             // Дата истечения токена (nil, если токен бессрочный)
+	State       string                 // Произвольная строка, идентично значению параметра state в URL страницы авторизации (только Implicit Flow)
 	Raw         map[string]interface{} // JSON Map ответа сервера, используйте, для получения дополнительных полей
 }
 
@@ -219,4 +220,18 @@ func (v *Config) buildTokenUrl(baseUrl string, opts ...AuthOption) string {
 
 	uri += u.Encode()
 	return uri
+}
+
+// Возвращает информацию об ошибке из URL
+func (v *Config) getErrorFromQuery(query url.Values) error {
+	errCode := query.Get("error")
+	errDesc := query.Get("error_description")
+	if errCode != "" || errDesc != "" {
+		return &TokenError{
+			Body:        []byte(query.Encode()),
+			ErrorCode:   errCode,
+			description: errDesc,
+		}
+	}
+	return nil
 }
