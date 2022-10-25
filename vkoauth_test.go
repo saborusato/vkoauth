@@ -323,6 +323,46 @@ func TestPasswordRequest(t *testing.T) {
 	}, vkoauth.SetUrlParam("foo", "bar"))
 }
 
+func TestExtendSidRequest(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("unexpected request method: %v", r.Method)
+		}
+
+		if r.URL.RawQuery != "" {
+			t.Errorf("unexpected url raw query: %q", r.URL.RawQuery)
+		}
+
+		if r.Header.Get("content-type") != "application/x-www-form-urlencoded; charset=utf-8" {
+			t.Errorf("unexpected content type header: %q", r.Header.Get("content-type"))
+		}
+
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		q, err := url.ParseQuery(string(bodyBytes))
+		if err != nil {
+			t.Error(err)
+		}
+
+		if q.Encode() != "captcha_key=abc&captcha_sid=12345&client_id=CLIENT_ID&client_secret=CLIENT_SECRET&foo=bar&grant_type=extend_sid&scope=8193&v=VERSION" {
+			t.Errorf("unexpected request body: %q", q.Encode())
+		}
+	}))
+
+	defer serv.Close()
+	c := conf(serv.URL)
+
+	c.ExtendSid(context.Background(), vkoauth.SidParams{
+		CaptchaSid: "12345",
+		CaptchaKey: "abc",
+		Sid:        "abc",
+		Hash:       "abcd",
+	}, vkoauth.SetUrlParam("foo", "bar"))
+}
+
 func TestPasswordResponseToken(t *testing.T) {
 	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"access_token":"9d77c727986d7668986d7668049870402D1986d986d76684bbc9b1bf8488de9","expires_in":0,"user_id":85635407}`))
