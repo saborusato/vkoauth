@@ -26,7 +26,10 @@ func (v *Config) ExtendSid(ctx context.Context, p SidParams, opts ...AuthOption)
 		tokenOpts = append(tokenOpts, setParam{"captcha_key", p.CaptchaKey})
 		tokenOpts = append(tokenOpts, setParam{"captcha_sid", p.CaptchaSid})
 	}
-
+	
+	tokenOpts = append(tokenOpts, setParam{"sid", p.Sid})
+	tokenOpts = append(tokenOpts, setParam{"hash", p.Hash})
+	
 	tokenOpts = append(tokenOpts, opts...)
 	return v.doTokenRequest(ctx, v.buildTokenUrl(v.endpoint().PasswordTokenUrl,
 		tokenOpts...,
